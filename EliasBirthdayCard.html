@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Birthday!</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Press+Start+2P&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #fce7f3 0%, #cbd5e1 100%);
+      font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Floating background accents */
+    .sparkle {
+      position: absolute;
+      font-size: 1.5rem;
+      animation: float 6s infinite ease-in-out;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(15deg); }
+    }
+
+    /* Card Wrapper */
+    .card-wrapper {
+      perspective: 1600px;
+      width: 90vw;
+      max-width: 380px;
+      height: 520px;
+    }
+
+    /* 3D Book-Folding Card Structure */
+    .e-card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* The Inside Page (Fixed Base) */
+    .inside-page {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid #f1f5f9;
+      text-align: center;
+    }
+
+    .inside-title {
+      font-size: 1.5rem;
+      color: #be123c;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .letter-body {
+      color: #334155;
+      font-size: 0.98rem;
+      line-height: 1.7;
+      text-align: left;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 8px;
+    }
+
+    .letter-body p {
+      margin-bottom: 12px;
+    }
+
+    .signature {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.8rem;
+      color: #be123c;
+      text-align: right;
+      margin-top: 12px;
+      padding-right: 8px;
+    }
+
+    /* Front Cover Flap (Swings open to the left) */
+    .cover-flap {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    /* Front Cover Face */
+    .cover-front {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      backface-visibility: hidden;
+      background: linear-gradient(135deg, #0f172a 0%, #011222 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
+      padding: 24px 16px;
+      box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+      border: 3px solid #38bdf8;
+    }
+
+    /* Retro pixel title on cover */
+    .front-message {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.65rem;
+      color: #facc15;
+      line-height: 1.6;
+      text-shadow: 2px 2px #000;
+      padding: 0 8px;
+    }
+
+    /* Cover Inside Left Face */
+    .cover-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      backface-visibility: hidden;
+      background: #090d16; /* Deep dark space background */
+      color: white;
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      border-right: 2px solid #38bdf8;
+    }
+
+    /* GIF Styling for Space Scene */
+    .orbit-gif {
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 18px;
+      border: 3px solid #facc15;
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+    }
+
+    /* Open State */
+    .e-card.is-open .cover-flap {
+      transform: rotateY(-140deg);
+    }
+
+    .tap-instruction {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      color: #38bdf8;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <span class="sparkle" style="top: 15%; left: 15%;">✨</span>
+  <span class="sparkle" style="top: 25%; right: 20%;">💖</span>
+  <span class="sparkle" style="bottom: 20%; left: 20%;">🎈</span>
+
+  <div class="card-wrapper">
+    <div class="e-card" id="eCard">
+      
+      <div class="inside-page">
+        <h2 class="inside-title">Happy Birthday my love! 🎉</h2>
+        
+        <div class="letter-body">
+          <p>
+            Happy birthday to my favorite person in the entire world!
+          </p>
+          <p>
+            It has been an amazing year next to you seeing you grow and have fun. I'm proud of what you have achieved. Thank you for being so good to me and Sushi. We are happy to have you in our lives. Wishing you strength, health, happiness, money, success, and more fun in this new year 🥰 
+          </p>
+          <p>
+            Here’s to another fun year around the sun and many happy returns!
+          </p>
+        </div>
+
+        <div class="signature">
+          Kelly with love ❤️
+        </div>
+      </div>
+
+      <div class="cover-flap" onclick="toggleCard()">
+        
+        <div class="cover-front">
+          <p class="front-message">You were born a long time ago...</p>
+<canvas id="dinoCanvas" width="200" height="200" style="image-rendering: pixelated;"></canvas>
+<p class="front-message" style="color: #f7f7f9;">HAPPY <del style="color: #ef4444; text-decoration-color: #ef4444;">24TH</del> 42ND BIRTHDAY!!!</p>
+          <p class="tap-instruction">[ TAP TO OPEN ]</p>
+        </div>
+
+        <div class="cover-back">
+          <img 
+  class="orbit-gif" 
+  src="sun-earth.gif" 
+  alt="Earth orbiting the sun" 
+/>
+          <p style="font-family: 'Press Start 2P', monospace; color: #facc15; font-size: 0.6rem; line-height: 1.8; text-shadow: 1px 1px #000;">
+            ANOTHER TRIP<br>AROUND THE SUN! 🌍☀️
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  /* --- 1. CODED 8-BIT DINOSAUR & BALLOONS ART --- */
+  const canvas = document.getElementById('dinoCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  const pSize = 8; // Pixel scale size
+
+  function drawPx(x, y, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x * pSize, y * pSize, pSize, pSize);
+  }
+
+  function draw8BitBalloon(centerX, centerY, colorMain, colorLight) {
+    // Balloon Body
+    for (let x = centerX - 2; x <= centerX + 2; x++) {
+      for (let y = centerY - 2; y <= centerY + 2; y++) {
+        drawPx(x, y, colorMain);
+      }
+    }
+    // Rounded corners
+    drawPx(centerX - 2, centerY - 2, '#0f172a'); // transparent/outline cutout
+    drawPx(centerX + 2, centerY - 2, '#0f172a');
+    drawPx(centerX - 2, centerY + 2, '#0f172a');
+    drawPx(centerX + 2, centerY + 2, '#0f172a');
+
+    // Shiny Highlight
+    drawPx(centerX - 1, centerY - 1, colorLight);
+
+    // Knot
+    drawPx(centerX, centerY + 3, colorMain);
+
+    // String
+    drawPx(centerX, centerY + 4, '#cbd5e1');
+    drawPx(centerX + 1, centerY + 5, '#cbd5e1');
+    drawPx(centerX + 1, centerY + 6, '#cbd5e1');
+    drawPx(centerX, centerY + 7, '#cbd5e1');
+  }
+
+  function drawDinoScene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Palette
+    const greenDark  = '#15803d';
+    const greenMain  = '#22c55e';
+    const greenLight = '#86efac';
+    const yellowHat  = '#facc15';
+    const redHat     = '#ef4444';
+    const blueHat    = '#3b82f6';
+    const cakePink   = '#f472b6';
+    const cakeBrown  = '#78350f';
+    const eyeWhite   = '#ffffff';
+    const darkOutline= '#0f172a';
+
+    // --- 8-BIT BACKGROUND BALLOONS ---
+    // Left Blue Balloon
+    draw8BitBalloon(3, 5, '#38bdf8', '#bae6fd');
+    // Right Red/Pink Balloon
+    draw8BitBalloon(21, 6, '#f43f5e', '#fecdd3');
+
+    // --- PARTY HAT ---
+    drawPx(8, 1, yellowHat);
+    drawPx(8, 2, redHat);
+    drawPx(7, 3, redHat); drawPx(8, 3, blueHat); drawPx(9, 3, redHat);
+    drawPx(6, 4, blueHat); drawPx(7, 4, blueHat); drawPx(8, 4, redHat); drawPx(9, 4, blueHat); drawPx(10, 4, blueHat);
+
+    // --- DINO HEAD ---
+    for (let x = 6; x <= 14; x++) {
+      for (let y = 5; y <= 9; y++) drawPx(x, y, greenMain);
+    }
+    for (let x = 11; x <= 14; x++) drawPx(x, 6, greenLight);
+    drawPx(8, 6, eyeWhite); drawPx(9, 6, darkOutline);
+    drawPx(12, 8, darkOutline); drawPx(13, 8, darkOutline); drawPx(14, 8, darkOutline);
+    drawPx(13, 9, eyeWhite);
+
+    // --- DINO BODY & TAIL ---
+    for (let x = 5; x <= 11; x++) {
+      for (let y = 10; y <= 17; y++) drawPx(x, y, greenMain);
+    }
+    for (let x = 8; x <= 11; x++) {
+      for (let y = 11; y <= 16; y++) drawPx(x, y, greenLight);
+    }
+    drawPx(4, 13, greenMain); drawPx(3, 14, greenMain); drawPx(2, 14, greenMain); drawPx(1, 15, greenDark);
+
+    // --- FEET ---
+    drawPx(6, 18, greenDark); drawPx(5, 19, greenDark); drawPx(6, 19, greenDark); drawPx(7, 19, greenDark);
+    drawPx(10, 18, greenDark); drawPx(9, 19, greenDark); drawPx(10, 19, greenDark); drawPx(11, 19, greenDark);
+
+    // --- ARMS HOLDING CAKE ---
+    drawPx(11, 12, greenMain); drawPx(12, 12, greenMain);
+    drawPx(11, 13, greenMain); drawPx(12, 13, greenMain);
+
+    // --- BIRTHDAY CAKE ---
+    for (let x = 12; x <= 20; x++) drawPx(x, 15, '#94a3b8');
+    for (let x = 13; x <= 19; x++) {
+      drawPx(x, 14, cakeBrown);
+      drawPx(x, 13, cakePink);
+    }
+    drawPx(13, 13, eyeWhite); drawPx(15, 13, eyeWhite); drawPx(17, 13, eyeWhite); drawPx(19, 13, eyeWhite);
+    drawPx(14, 12, eyeWhite); drawPx(16, 12, eyeWhite); drawPx(18, 12, eyeWhite);
+
+    // --- CANDLE & FLICKERING FLAME ---
+    drawPx(16, 10, blueHat); drawPx(16, 11, blueHat);
+    const flameColor = Math.random() > 0.4 ? '#facc15' : '#ef4444';
+    drawPx(16, 9, flameColor);
+    if (Math.random() > 0.5) drawPx(15, 9, '#fb923c');
+  }
+
+  // Animate candle flame flickering
+  setInterval(drawDinoScene, 220);
+
+  /* --- 2. CARD INTERACTION & CONFETTI --- */
+  function toggleCard() {
+    const card = document.getElementById('eCard');
+    card.classList.toggle('is-open');
+    const isOpen = card.classList.contains('is-open');
+
+    if (isOpen) {
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+      setTimeout(() => {
+        confetti({ particleCount: 50, spread: 100, origin: { y: 0.5 } });
+      }, 250);
+    }
+  }
+</script>
+</body>
+</html>
